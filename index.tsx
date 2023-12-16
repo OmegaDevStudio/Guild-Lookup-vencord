@@ -21,11 +21,7 @@ const settings = definePluginSettings({
         description: "Select role to query",
         hidden: true
     },
-    guild: {
-        type: OptionType.STRING,
-        description: "Select guild to query",
-        hidden: true
-    },
+
     other_guild: {
         type: OptionType.STRING,
         description: "Select other_guild to query",
@@ -57,7 +53,7 @@ const GuildContext: NavContextMenuPatchCallback = (children, { guild }: GuildCon
 
 function CompareServerModal({ rootProps, guild }: { rootProps: ModalProps; guild: Guild; }) {
     return (
-        <ModalRoot {...rootProps} size={ModalSize.LARGE}>
+        <ModalRoot {...rootProps} size={ModalSize.DYNAMIC}>
             <ModalHeader className={cl("modal-header")}>
                 <Forms.FormTitle tag="h1">Compare Server Modal</Forms.FormTitle>
             </ModalHeader>
@@ -95,8 +91,7 @@ interface option {
 }
 
 function RoleKey({ guild }: { guild: Guild; }) {
-    ;
-    settings.store.guild = guild.id;
+    
     let roles: option[] = [];
     Object.values(guild.roles).forEach(r => roles.push({
         value: r.id,
@@ -165,21 +160,21 @@ function UserFilter({ guild }: { guild: Guild }) {
 
     const members = calculateMembers(guild);
 
-    const pageSize = 6;
+    const pageSize = 9;
     const startIndex = (page - 1) * pageSize;
     const endIndex = startIndex + pageSize;
 
     return (
         <div>
-            <Card style={{
+            <div style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 1fr",
+                gridTemplateColumns: "1fr 1fr 1fr",
                 gap: "10px",
             }}>
                 {members.slice(startIndex, endIndex).map((m) => (
                     <UserCard member={m} key={m.userId}></UserCard>
                 ))}
-            </Card>
+            </div>
             <Paginator
                 pageSize={pageSize}
                 currentPage={page}
@@ -221,18 +216,27 @@ function UserFilter({ guild }: { guild: Guild }) {
 }
 
 
-function UserCard({ member }: { member: GuildMember; }) {
+function UserCard({ member }: { member: GuildMember }) {
     let user = UserStore.getUser(member.userId);
+    let joinedAt = member.joinedAt;
     return (
         <Card style={{
-            borderRadius: "3px",
-            filter: "brightness(100%)"
+            backgroundColor: "var(--background-secondary-alt)",
+            color: "var(--interactive-active)",
+            borderRadius: "8px",
+            display: "block",
+            height: "100%",
+            padding: "12px",
+            width: "100%",
+            transition: "0.1s ease-out",
+            transitionProperty: "box-shadow, transform, background, opacity",
+            boxSizing: "border-box",
         }}>
             <Forms.FormTitle tag="h5">{user.username}</Forms.FormTitle>
-            <Forms.FormText>ID: {member.userId}</Forms.FormText>
-            <Forms.FormText>Nickname: {member.nick}</Forms.FormText>
-            <Forms.FormText>Joined at: {member.joinedAt}</Forms.FormText>
-            <Forms.FormText>Created at: {user.createdAt.toDateString()}</Forms.FormText>
+            <Forms.FormText tag="p">ID: {member.userId}</Forms.FormText>
+            <Forms.FormText tag="p">Nickname: {member.nick}</Forms.FormText>
+            { (joinedAt !== undefined) ? <Forms.FormText tag="p">Joined at: {new Date(joinedAt).toDateString()}</Forms.FormText> : null}
+            <Forms.FormText tag="p">Created at: {user.createdAt.toDateString()}</Forms.FormText>
         </Card>
     );
 }
@@ -243,8 +247,8 @@ function UserCard({ member }: { member: GuildMember; }) {
 
 
 export default definePlugin({
-    name: "Guild Lookup",
-    description: "Query tools regarding guilds",
+    name: "Compare Servers",
+    description: "Query tools to compare guilds",
     authors: [{ name: "Shell", id: 1056383259325513888n }],
     settings,
 
