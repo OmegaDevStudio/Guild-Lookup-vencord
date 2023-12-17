@@ -63,10 +63,10 @@ function CompareServerModal({ rootProps, guild }: { rootProps: ModalProps; guild
                 gap: "20px"
             }}>
                 <div>
-                    <br/>
+                    <br />
                     <Forms.FormTitle tag="h2">{guild.name}</Forms.FormTitle>
-                    <Forms.FormDivider/>
-                    <br/>
+                    <Forms.FormDivider />
+                    <br />
                     <Forms.FormText>ID:  {guild.id}</Forms.FormText>
                     <Forms.FormText>Description:  {guild.description}</Forms.FormText>
                     <RoleKey guild={guild} />
@@ -76,7 +76,7 @@ function CompareServerModal({ rootProps, guild }: { rootProps: ModalProps; guild
                     <br />
                     <Forms.FormTitle tag="h2">Users</Forms.FormTitle>
                     <Forms.FormDivider></Forms.FormDivider>
-                    <br/>
+                    <br />
                     <UserFilter guild={guild} />
                 </div>
             </ModalContent>
@@ -91,15 +91,26 @@ interface option {
 }
 
 function RoleKey({ guild }: { guild: Guild; }) {
-    
+
+    function indexOfLabel(labelToFind: string) {
+        for (let i = 0; i < roles.length; i++) {
+            if (roles[i].label === labelToFind) {
+                return i; // Return the index when the label is found
+            }
+        }
+            return -1; // Return -1 if the label is not found
+        }
+
     let roles: option[] = [];
     Object.values(guild.roles).forEach(r => roles.push({
         value: r.id,
         label: r.name
     }));
+    let index = indexOfLabel("@everyone");
+    roles.splice(index, 1);
     roles.push({
         value: "0",
-        label: "None"
+        label: "@everyone"
     });
 
     return (
@@ -155,6 +166,8 @@ function OtherGuildKey({ guild }: { guild: Guild; }) {
 
 
 
+
+
 function UserFilter({ guild }: { guild: Guild }) {
     const [page, setPage] = useState(1);
 
@@ -190,7 +203,7 @@ function UserFilter({ guild }: { guild: Guild }) {
         const filteredMembers: GuildMember[] = [];
         const targetRole = settings.use(['role']).role;
         const targetGuild = settings.use(['other_guild']).other_guild;
-    
+
         for (const member of GuildMemberStore.getMembers(guild.id)) {
             let shouldAddMember = true;
             if (targetGuild !== '0') {
@@ -201,19 +214,20 @@ function UserFilter({ guild }: { guild: Guild }) {
             }
             if (shouldAddMember && targetRole !== '0') {
                 const hasTargetRole = member.roles.includes(targetRole);
-    
+
                 shouldAddMember = hasTargetRole;
             }
-    
+
             if (shouldAddMember) {
                 filteredMembers.push(member);
             }
         }
-    
+
         return filteredMembers;
-    }
-    
+    }   
 }
+
+
 
 
 function UserCard({ member }: { member: GuildMember }) {
