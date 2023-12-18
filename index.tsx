@@ -163,11 +163,6 @@ function OtherGuildKey({ guild }: { guild: Guild; }) {
 }
 
 
-
-
-
-
-
 function UserFilter({ guild }: { guild: Guild }) {
     const [page, setPage] = useState(1);
 
