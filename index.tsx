@@ -102,9 +102,13 @@ function CompareServerModal({ rootProps, guild }: { rootProps: ModalProps; guild
                     <Forms.FormText>Description:  {guild.description}</Forms.FormText>
                     <RoleKey guild={guild} />
                     <OtherGuildKey guild={guild} />
-                    <Button onClick={() => copyWithToast(JSON.stringify(json, null, 4), "User data copied to clipboard!")} style={{position: "absolute", bottom: "2%"}}>
+                    <div style={{display: "flex",
+                        flexDirection: "column",
+                    }}>
+                    <Button onClick={() => copyWithToast(JSON.stringify(json, null, 4), "User data copied to clipboard!")}>
                         Copy Users Raw JSON
                     </Button>
+                    </div>
                 </div>
                 <div>
                     <br />
