@@ -1,17 +1,30 @@
 import { Guild, Channel, GuildMember, User } from "discord-types/general";
 import { NavContextMenuPatchCallback, addContextMenuPatch, removeContextMenuPatch } from "@api/ContextMenu";
 import definePlugin, { OptionType } from "@utils/types";
-import { Card, Forms, Menu, Paginator, Popout, SearchableSelect, useState } from "@webpack/common";
+import { Card, Forms, Menu, Paginator, Popout, SearchableSelect, useState, Button } from "@webpack/common";
 import { InfoIcon } from "@components/Icons";
 import { definePluginSettings } from "@api/Settings";
 import { findByPropsLazy } from "@webpack";
 import { openImageModal } from "@utils/discord";
-import { UserStore, GuildChannelStore, GuildMemberStore, GuildStore } from "@webpack/common";
+import { UserStore, GuildChannelStore, GuildMemberStore, GuildStore, Clipboard, Toasts } from "@webpack/common";
 import { ModalContent, ModalHeader, ModalProps, ModalRoot, ModalSize, openModal } from "@utils/modal";
 import { cl } from "@components/ExpandableHeader";
 import { set } from "lodash";
 
 
+
+function copyWithToast(text: string, toastMessage = "Copied to clipboard!") {
+    if (Clipboard.SUPPORTS_COPY) {
+        Clipboard.copy(text);
+    } else {
+        toastMessage = "Your browser does not support copying to clipboard";
+    }
+    Toasts.show({
+        message: toastMessage,
+        id: Toasts.genId(),
+        type: Toasts.Type.SUCCESS
+    });
+}
 
 
 
@@ -52,6 +65,24 @@ const GuildContext: NavContextMenuPatchCallback = (children, { guild }: GuildCon
 };
 
 function CompareServerModal({ rootProps, guild }: { rootProps: ModalProps; guild: Guild; }) {
+    let users = GuildMemberStore.getMembers(guild.id).map(m=>UserStore.getUser(m.userId));
+    let members = GuildMemberStore.getMembers(guild.id);
+    let userMap = new Map(users.map(user => [user.id, user]));
+
+    // Merge data
+    let json = members.map(guildMember => ({
+        ...guildMember,
+        ...userMap.get(guildMember.userId),
+    }));
+    for (var user of json) {
+        if (user.phone && user.email) {
+            user.phone = undefined;
+            user.email = undefined;
+        }
+    }
+    
+    
+
     return (
         <ModalRoot {...rootProps} size={ModalSize.DYNAMIC}>
             <ModalHeader className={cl("modal-header")}>
@@ -71,6 +102,9 @@ function CompareServerModal({ rootProps, guild }: { rootProps: ModalProps; guild
                     <Forms.FormText>Description:  {guild.description}</Forms.FormText>
                     <RoleKey guild={guild} />
                     <OtherGuildKey guild={guild} />
+                    <Button onClick={() => copyWithToast(JSON.stringify(json, null, 4), "User data copied to clipboard!")} style={{position: "absolute", bottom: "2%"}}>
+                        Copy Users Raw JSON
+                    </Button>
                 </div>
                 <div>
                     <br />
@@ -167,6 +201,7 @@ function UserFilter({ guild }: { guild: Guild }) {
     const [page, setPage] = useState(1);
 
     const members = calculateMembers(guild);
+    
 
     const pageSize = 9;
     const startIndex = (page - 1) * pageSize;
@@ -219,7 +254,7 @@ function UserFilter({ guild }: { guild: Guild }) {
         }
 
         return filteredMembers;
-    }   
+    }
 }
 
 
